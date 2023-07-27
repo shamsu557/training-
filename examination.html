@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Introduction to Computer Exam - Objective Questions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .option {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        #submitBtn {
+            display: block;
+            margin: 20px auto;
+        }
+
+        #timer {
+            text-align: center;
+            font-size: 20px;
+        }
+
+        #idForm {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #startBtn {
+            margin-top: 10px;
+        }
+
+        /* Additional CSS for student ID display */
+        #studentIdDisplay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Introduction to Computer Exam</h1>
+    <div id="idForm">
+        <label for="idNumber">Enter your ID number:</label>
+        <input type="text" id="idNumber" required>
+        <label for="examId">Enter the Exam ID:</label>
+        <input type="text" id="examId" required>
+        <button type="button" id="startBtn" onclick="startExam()">Start Exam</button>
+    </div>
+    <div id="examContainer" style="display: none;">
+        <div id="timer">05:00</div>
+
+        <form id="examForm">
+            <div class="question">
+                <p>1. What does CPU stand for?</p>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="a">A. Central Processing Unit</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="b">B. Computer Processing Unit</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q1" value="c">C. Central Personal Unit</label>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="question">
+                <p>2. What is the binary equivalent of the decimal number 7?</p>
+                <ul class="options">
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="a">A. 110</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="b">B. 111</label>
+                    </li>
+                    <li class="option">
+                        <label><input type="radio" name="q2" value="c">C. 101</label>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Add more questions here -->
+            <!-- ... Remaining questions ... -->
+
+            <button type="button" id="submitBtn" onclick="gradeExam()">Submit Answers</button>
+        </form>
+    </div>
+
+    <script>
+    const idForm = document.getElementById('idForm');
+const examContainer = document.getElementById('examContainer');
+const validExamId = 'ICS111'; // Valid exam ID for this exam
+
+const timerElement = document.getElementById('timer');
+let timeLeft = 300; // 05 minutes in seconds
+let timer;
+let canSubmit = true;
+let examSubmitted = false; // Flag to indicate if the exam has been submitted
+
+function toggleExamContainer() {
+    idForm.style.display = 'none';
+    examContainer.style.display = 'block';
+}
+
+function startExam() {
+    const idNumberInput = document.getElementById('idNumber');
+    const idNumber = idNumberInput.value.trim();
+
+    const examIdInput = document.getElementById('examId');
+    const examId = examIdInput.value.trim();
+
+    // Check if ID number and exam ID are entered
+    if (idNumber === "" || examId === "") {
+        alert("Please enter your ID number and the Exam ID to start the exam.");
+        return;
+    }
+
+    // Check if the entered exam ID is valid
+    if (examId !== validExamId) {
+        alert("Invalid Exam ID. Please enter the correct Exam ID to access the exam.");
+        return;
+    }
+
+    // Check if the student has ever submitted the current exam before
+    const hasEverSubmitted = localStorage.getItem(`${idNumber}_${validExamId}`);
+    if (hasEverSubmitted) {
+        const examData = JSON.parse(hasEverSubmitted);
+        if (examData.answered) {
+            const previousScore = examData.score;
+            alert(`You have attempted this exam and your score is: ${previousScore}`);
+            window.location.href = `score.html?score=${previousScore}`;
+            return;
+        }
+    }
+
+    // Hide the ID form and show the exam container
+    toggleExamContainer();
+
+    // If the timer was already running, do not start a new timer
+    if (!timer) {
+        // Check if the exam has been started before
+        const remainingTime = localStorage.getItem(`${idNumber}_${validExamId}_time`);
+        if (remainingTime) {
+            timeLeft = Math.max(parseInt(remainingTime, 10), 0); // Ensure timeLeft is not negative
+            // If timeLeft is 0, the exam has already ended, so submit the exam
+            if (timeLeft === 0) {
+                handleExamClosure();
+                canSubmit = false;
+                return;
+            }
+        }
+
+        updateTimer();
+    }
+
+    // Display student ID at the top right corner of the exam page
+    const studentIdDisplay = document.createElement('div');
+    studentIdDisplay.id = 'studentIdDisplay';
+    studentIdDisplay.textContent = `Student ID: ${idNumber}`;
+    document.body.appendChild(studentIdDisplay);
+
+    // Load saved exam data if available
+    loadSavedExamData();
+}
+
+
+function updateTimer() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const displayTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    timerElement.textContent = displayTime;
+
+    if (timeLeft === 0 && canSubmit) {
+        handleExamClosure();
+        canSubmit = false;
+    } else {
+        timeLeft--;
+        timer = setTimeout(updateTimer, 1000);
+    }
+}
+
+function handleExamClosure() {
+    // Save exam data when the time is up or when the student closes the exam
+    saveExamData();
+    gradeExam();
+}
+
+function saveExamData() {
+    const idNumberInput = document.getElementById('idNumber');
+    const idNumber = idNumberInput.value.trim();
+    const form = document.getElementById("examForm");
+    const formData = new FormData(form);
+    const examData = { answered: true, answers: {} };
+
+    // Save the selected answers for each question
+    for (const pair of formData.entries()) {
+        const questionId = pair[0];
+        const selectedAnswer = pair[1];
+        examData.answers[questionId] = selectedAnswer;
+    }
+
+    localStorage.setItem(`${idNumber}_${validExamId}`, JSON.stringify(examData));
+    localStorage.setItem(`${idNumber}_${validExamId}_time`, timeLeft.toString());
+}
+
+function loadSavedExamData() {
+    const idNumberInput = document.getElementById('idNumber');
+    const idNumber = idNumberInput.value.trim();
+
+    // Retrieve saved exam data from localStorage
+    const savedData = localStorage.getItem(`${idNumber}_${validExamId}`);
+    if (savedData) {
+        const examData = JSON.parse(savedData);
+
+        // Restore the answered questions
+        const form = document.getElementById("examForm");
+        for (const questionId in examData.answers) {
+            const selectedAnswer = examData.answers[questionId];
+            const radioBtn = form.querySelector(`input[name="${questionId}"][value="${selectedAnswer}"]`);
+            if (radioBtn) {
+                radioBtn.checked = true;
+            }
+        }
+    }
+}
+
+function gradeExam() {
+    const form = document.getElementById("examForm");
+    const formData = new FormData(form);
+    const totalQuestions = document.querySelectorAll('.question').length;
+    let correctAnswers = 0;
+
+    // Compare answers with correct ones
+    const correctAnswersMap = {
+        q1: "a",
+        q2: "b",
+        // Add more correct answers here
+    };
+
+    for (const pair of formData.entries()) {
+        const questionId = pair[0];
+        const selectedAnswer = pair[1];
+
+        if (correctAnswersMap[questionId] === selectedAnswer) {
+            correctAnswers++;
+        }
+    }
+
+    const idNumberInput = document.getElementById('idNumber');
+    const idNumber = idNumberInput.value.trim();
+    localStorage.setItem(`${idNumber}_${validExamId}`, JSON.stringify({ answered: true, score: correctAnswers }));
+
+    // Calculate the number of failed questions (unanswered questions)
+    const failedQuestions = totalQuestions - correctAnswers;
+
+    // Show the student's score for the exam
+    alert(`Your score: ${correctAnswers} out of ${totalQuestions}. ${failedQuestions} question(s) were not answered.`);
+    
+    // Set the examSubmitted flag to prevent resubmission
+    examSubmitted = true;
+
+    // Disable the submit button to prevent going back to the exam
+    document.getElementById('submitBtn').disabled = true;
+
+    // Redirect to the score page with the score and failed questions count as parameters in the URL
+    window.location.href = `score.html?score=${correctAnswers}&failed=${failedQuestions}`;
+
+}
+
+// Automatically load saved exam data when the exam page is loaded
+window.addEventListener('DOMContentLoaded', loadSavedExamData);
+
+// Handle the window.onbeforeunload event to show a confirmation warning
+window.onbeforeunload = function (event) {
+    if (timeLeft > 0 && canSubmit && !examSubmitted) {
+        handleExamClosure(); // Save the exam data before leaving the page
+        const confirmationMessage = 'Your exam progress will be lost if you leave this page. Do you want to stay on the page?';
+        (event || window.event).returnValue = confirmationMessage; // For modern browsers
+        return confirmationMessage; // For older versions of IE and Firefox
+    }
+};
+    </script>
+</body>
+</html>
