@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .module {
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            color: #1d1313;
+        }
+
+        .btn-b {
+            background-color: #98a7b3;
+        }
+
+        a {
+            color: #474e53;
+            text-decoration: none;
+            color: #0c0808;
+        }
+
+        a:hover {
+            color: bisque;
+        }
+
+        h4 {
+            margin-bottom: 20px;
+        }
+
+        .divider-w {
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #eee;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Added styles for button alignment */
+        .form-group .btn {
+            margin-right: 10px;
+            margin-bottom: 1%;
+        }
+    </style>
+</head>
+<body>
+    <section class="module">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-5 col-sm-offset-1 mb-sm-40">
+                    <h4 class="font-alt">Login</h4>
+                    <hr class="divider-w mb-10">
+                    <form class="form" name="loginForm" onSubmit="validateForm();" action="index_shop.html" method="post">
+                        <div class="form-group">
+                            <input class="form-control" id="username" name="usr" type="text" placeholder="Username"/>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" id="password" name="pwd" type="password" placeholder="Password"/>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-round btn-b" type="submit" value="login">Login</button>
+                            <button class="btn btn-round btn-b" type="submit" value="register">
+                                <a href="register.html">Register</a>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="form-group">
+                        <a href="">Forgot Password?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        //Login validation
+        function validateForm() {
+            var user = document.loginForm.usr.value;
+            var pass = document.loginForm.pwd.value;
+            var username = "username";
+            var password = "password";
+            if ((user == username) && (pass == password)) {
+                return true;
+            } else {
+                alert("Login was unsuccessful, please check your username and password");
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
